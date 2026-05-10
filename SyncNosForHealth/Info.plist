@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.chiimagnus.SyncNosForHealth.oauth</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>syncnos-health-ios</string>
+			</array>
+		</dict>
+	</array>
+	<key>NSHealthShareUsageDescription</key>
+	<string>SyncNos Health 需要读取你的睡眠数据以同步到 Notion。</string>
+</dict>
+</plist>
