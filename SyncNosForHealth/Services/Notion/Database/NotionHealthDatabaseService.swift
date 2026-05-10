@@ -109,97 +109,34 @@ final class NotionHealthDatabaseService {
     private func ensureSchema(databaseId: String, traceId: UUID?) async throws -> NotionHealthDatabaseHandle {
         let data = try await api.performRequest(method: "GET", path: "/databases/\(databaseId)", traceId: traceId)
         let databaseURL = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["url"] as? String
-        var info = try parseAndValidateDatabase(data: data, allowMissingTotalSleep: true)
+        let info = try parseAndValidateDatabase(data: data)
         let trace = traceId?.uuidString ?? "-"
         let databaseURLText = databaseURL ?? "-"
         let dateTypeText = info.datePropertyType ?? "-"
         AppLog.notionDatabase.info("ensureSchema fetched trace=\(trace, privacy: .public) databaseId=\(databaseId, privacy: .private(mask: .hash)) url=\(databaseURLText, privacy: .public) titleProperty=\(info.titlePropertyName, privacy: .public) hasTotal=\(info.hasTotalSleepMin, privacy: .public) hasDate=\(info.hasDateProperty, privacy: .public) dateType=\(dateTypeText, privacy: .public)")
 
-        // Notion 数据库必须有一个 title 属性；同步使用独立的 date 属性（NotionHealthDatabaseSpec.datePropertyName）。
-        // 若 title 属性名恰好占用了 date 属性名（例如旧库把 title 命名为 "Date"），则先把 title 改名，避免后续新增 date 属性冲突。
-        if info.titlePropertyName == NotionHealthDatabaseSpec.datePropertyName, info.datePropertyType == "title" {
-            let candidates = ["Title", "Title 1"]
-            for newTitleName in candidates {
-                let renameBody: [String: Any] = [
-                    "properties": [
-                        info.titlePropertyName: [
-                            "name": newTitleName
-                        ]
-                    ]
-                ]
-                do {
-                    _ = try await api.performRequest(method: "PATCH", path: "/databases/\(databaseId)", body: renameBody, traceId: traceId)
-                    info = DatabaseSchemaInfo(
-                        titlePropertyName: newTitleName,
-                        hasTotalSleepMin: info.hasTotalSleepMin,
-                        hasDateProperty: info.hasDateProperty,
-                        datePropertyType: info.datePropertyType
-                    )
-                    AppLog.notionDatabase.info("ensureSchema renamed title Date→\(newTitleName) trace=\(trace, privacy: .public) databaseId=\(databaseId, privacy: .private(mask: .hash))")
-                    break
-                } catch {
-                    AppLog.notionDatabase.notice("ensureSchema rename title failed trace=\(trace, privacy: .public) databaseId=\(databaseId, privacy: .private(mask: .hash)) newName=\(newTitleName, privacy: .public) error=\(String(describing: error), privacy: .public)")
-                }
-            }
-        }
-
-        // 若已经存在同名属性但类型不是 date（例如手工建成了 text），则先改名让出 "Date" 再创建 date 属性。
-        if let existingType = info.datePropertyType, existingType != "date", existingType != "title" {
-            let candidates = ["DateText", "DateText 1"]
-            for newName in candidates {
-                let renameBody: [String: Any] = [
-                    "properties": [
-                        NotionHealthDatabaseSpec.datePropertyName: [
-                            "name": newName
-                        ]
-                    ]
-                ]
-                do {
-                    _ = try await api.performRequest(method: "PATCH", path: "/databases/\(databaseId)", body: renameBody, traceId: traceId)
-                    info = DatabaseSchemaInfo(
-                        titlePropertyName: info.titlePropertyName,
-                        hasTotalSleepMin: info.hasTotalSleepMin,
-                        hasDateProperty: false,
-                        datePropertyType: nil
-                    )
-                    AppLog.notionDatabase.info("ensureSchema renamed non-date Date→\(newName) trace=\(trace, privacy: .public) databaseId=\(databaseId, privacy: .private(mask: .hash)) oldType=\(existingType, privacy: .public)")
-                    break
-                } catch {
-                    AppLog.notionDatabase.notice("ensureSchema rename Date failed trace=\(trace, privacy: .public) databaseId=\(databaseId, privacy: .private(mask: .hash)) newName=\(newName, privacy: .public) oldType=\(existingType, privacy: .public) error=\(String(describing: error), privacy: .public)")
-                }
-            }
-        }
-
-        if !info.hasDateProperty {
-            let body: [String: Any] = [
-                "properties": [
-                    NotionHealthDatabaseSpec.datePropertyName: ["date": [:]]
-                ]
-            ]
-            _ = try await api.performRequest(method: "PATCH", path: "/databases/\(databaseId)", body: body, traceId: traceId)
-            info = DatabaseSchemaInfo(
-                titlePropertyName: info.titlePropertyName,
-                hasTotalSleepMin: info.hasTotalSleepMin,
-                hasDateProperty: true,
-                datePropertyType: "date"
+        guard info.titlePropertyName == NotionHealthDatabaseSpec.titlePropertyName else {
+            throw NSError(
+                domain: "NotionHealthDatabaseService",
+                code: -21,
+                userInfo: [NSLocalizedDescriptionKey: "健康数据库 schema 不符合预期：title 属性必须命名为 '\(NotionHealthDatabaseSpec.titlePropertyName)'（当前为 '\(info.titlePropertyName)'）。请使用新的健康数据库，或在设置中用「健康数据库 ID 覆盖」指定正确数据库。"]
             )
-            AppLog.notionDatabase.info("ensureSchema added date property trace=\(trace, privacy: .public) databaseId=\(databaseId, privacy: .private(mask: .hash)) name=\(NotionHealthDatabaseSpec.datePropertyName, privacy: .public)")
         }
 
-        if !info.hasTotalSleepMin {
-            let body: [String: Any] = [
-                "properties": [
-                    "TotalSleepMin": ["number": ["format": "number"]],
-                ]
-            ]
-            _ = try await api.performRequest(method: "PATCH", path: "/databases/\(databaseId)", body: body, traceId: traceId)
-            info = DatabaseSchemaInfo(
-                titlePropertyName: info.titlePropertyName,
-                hasTotalSleepMin: true,
-                hasDateProperty: info.hasDateProperty,
-                datePropertyType: info.datePropertyType
+        guard info.hasDateProperty, info.datePropertyType == "date" else {
+            throw NSError(
+                domain: "NotionHealthDatabaseService",
+                code: -22,
+                userInfo: [NSLocalizedDescriptionKey: "健康数据库 schema 不符合预期：缺少 date 属性 '\(NotionHealthDatabaseSpec.datePropertyName)'（或类型不是 date）。请使用新的健康数据库，或在设置中用「健康数据库 ID 覆盖」指定正确数据库。"]
             )
-            AppLog.notionDatabase.info("ensureSchema added TotalSleepMin trace=\(trace, privacy: .public) databaseId=\(databaseId, privacy: .private(mask: .hash))")
+        }
+
+        guard info.hasTotalSleepMin else {
+            throw NSError(
+                domain: "NotionHealthDatabaseService",
+                code: -23,
+                userInfo: [NSLocalizedDescriptionKey: "健康数据库 schema 不符合预期：缺少 number 属性 'TotalSleepMin'。请使用新的健康数据库，或在设置中用「健康数据库 ID 覆盖」指定正确数据库。"]
+            )
         }
 
         return NotionHealthDatabaseHandle(
@@ -217,8 +154,7 @@ final class NotionHealthDatabaseService {
     }
 
     private func parseAndValidateDatabase(
-        data: Data,
-        allowMissingTotalSleep: Bool = false
+        data: Data
     ) throws -> DatabaseSchemaInfo {
         guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
               let properties = json["properties"] as? [String: Any] else {
@@ -261,14 +197,6 @@ final class NotionHealthDatabaseService {
         let dateProperty = properties[NotionHealthDatabaseSpec.datePropertyName] as? [String: Any]
         let dateType = dateProperty?["type"] as? String
         let hasDate = (dateType == "date")
-
-        if !allowMissingTotalSleep && !hasTotal {
-            throw NSError(
-                domain: "NotionHealthDatabaseService",
-                code: -14,
-                userInfo: [NSLocalizedDescriptionKey: "Database missing required property 'TotalSleepMin'"]
-            )
-        }
 
         return DatabaseSchemaInfo(
             titlePropertyName: titleName,

@@ -15,22 +15,12 @@ final class NotionHealthDailyUpsertService {
         let trace = traceId?.uuidString ?? "-"
         AppLog.notionSync.info("upsert start trace=\(trace, privacy: .public) databaseId=\(databaseId, privacy: .private(mask: .hash)) titleProperty=\(titlePropertyName, privacy: .public) dateProperty=\(datePropertyName, privacy: .public) date=\(date, privacy: .public) totalSleepMin=\(totalSleepMin, privacy: .private)")
 
-        // 优先用 date 属性查找；若该属性缺失/未填（旧数据），再 fallback 到 title 等值查找并补写 date 属性。
-        let pageIdByDate = try await findPageByDateProperty(
+        let existingPageId = try await findPageByDateProperty(
             databaseId: databaseId,
             datePropertyName: datePropertyName,
             date: date,
             traceId: traceId
         )
-        var existingPageId = pageIdByDate
-        if existingPageId == nil {
-            existingPageId = try await findPageByTitle(
-                databaseId: databaseId,
-                titlePropertyName: titlePropertyName,
-                date: date,
-                traceId: traceId
-            )
-        }
 
         if let pageId = existingPageId {
             try await updatePage(
@@ -38,7 +28,6 @@ final class NotionHealthDailyUpsertService {
                 totalSleepMin: totalSleepMin,
                 datePropertyName: datePropertyName,
                 date: date,
-                shouldPatchDate: pageIdByDate == nil,
                 traceId: traceId
             )
         } else {
@@ -86,38 +75,6 @@ final class NotionHealthDailyUpsertService {
         return id
     }
 
-    private func findPageByTitle(databaseId: String, titlePropertyName: String, date: String, traceId: UUID?) async throws -> String? {
-        let body: [String: Any] = [
-            "filter": [
-                "property": titlePropertyName,
-                "title": ["equals": date],
-            ]
-        ]
-
-        let data = try await api.performRequest(method: "POST", path: "/databases/\(databaseId)/query", body: body, traceId: traceId)
-        guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let results = json["results"] as? [[String: Any]] else {
-            let trace = traceId?.uuidString ?? "-"
-            AppLog.notionSync.notice("findPageByTitle parse failed trace=\(trace, privacy: .public) databaseId=\(databaseId, privacy: .private(mask: .hash)) date=\(date, privacy: .public)")
-            return nil
-        }
-
-        let trace = traceId?.uuidString ?? "-"
-        AppLog.notionSync.info("findPageByTitle results=\(results.count, privacy: .public) trace=\(trace, privacy: .public) databaseId=\(databaseId, privacy: .private(mask: .hash)) date=\(date, privacy: .public)")
-        if results.count > 1 {
-            throw NSError(domain: "NotionHealthDailyUpsertService", code: -1,
-                          userInfo: [NSLocalizedDescriptionKey: "Multiple pages found for date \(date)"])
-        }
-
-        let id = results.first?["id"] as? String
-        if let id {
-            AppLog.notionSync.info("findPageByTitle hit trace=\(trace, privacy: .public) pageId=\(id, privacy: .private(mask: .hash))")
-        } else {
-            AppLog.notionSync.info("findPageByTitle miss trace=\(trace, privacy: .public)")
-        }
-        return id
-    }
-
     private func createPage(databaseId: String, titlePropertyName: String, datePropertyName: String, date: String, totalSleepMin: Int, traceId: UUID?) async throws {
         let body: [String: Any] = [
             "parent": ["database_id": databaseId],
@@ -153,7 +110,6 @@ final class NotionHealthDailyUpsertService {
         totalSleepMin: Int,
         datePropertyName: String,
         date: String,
-        shouldPatchDate: Bool,
         traceId: UUID?
     ) async throws {
         var properties: [String: Any] = [
@@ -161,9 +117,7 @@ final class NotionHealthDailyUpsertService {
                 "number": totalSleepMin
             ]
         ]
-        if shouldPatchDate {
-            properties[datePropertyName] = ["date": ["start": date]]
-        }
+        properties[datePropertyName] = ["date": ["start": date]]
         let body: [String: Any] = [
             "properties": properties
         ]
