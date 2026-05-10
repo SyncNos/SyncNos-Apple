@@ -38,12 +38,6 @@
 				"Services/DataSources-From/OCR/AppleVisionOCR技术文档.md",
 				"Services/DataSources-To/添加新同步目标完整指南.md",
 				"Services/WebArticle/Readability/UPSTREAM-README.md",
-			);
-			target = D8CE88D92E713DB50025AD6E /* SyncNos */;
-		};
-		D834FF742EC23394008EE9FB /* Exceptions for "Resource" folder in "SyncNos" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
 				SyncNos.storekit,
 			);
 			target = D8CE88D92E713DB50025AD6E /* SyncNos */;
@@ -51,14 +45,6 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		D855CBA82E7D52B10019C4A0 /* Resource */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				D834FF742EC23394008EE9FB /* Exceptions for "Resource" folder in "SyncNos" target */,
-			);
-			path = Resource;
-			sourceTree = "<group>";
-		};
 		D8A968312FB083BB009504AC /* SyncNosForHealth */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = SyncNosForHealth;
@@ -108,7 +94,6 @@
 		D81167B32E70A13F000D0173 = {
 			isa = PBXGroup;
 			children = (
-				D855CBA82E7D52B10019C4A0 /* Resource */,
 				D8CE88DB2E713DB50025AD6E /* SyncNos */,
 				D8A968312FB083BB009504AC /* SyncNosForHealth */,
 				D8A968412FB083BC009504AC /* SyncNosForHealthTests */,
@@ -187,7 +172,6 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				D855CBA82E7D52B10019C4A0 /* Resource */,
 				D8CE88DB2E713DB50025AD6E /* SyncNos */,
 			);
 			name = SyncNos;
