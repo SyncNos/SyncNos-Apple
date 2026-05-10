@@ -10,7 +10,19 @@
 		D8BA242A2FB03D35007C6A72 /* MenuBarDockKit in Frameworks */ = {isa = PBXBuildFile; productRef = F5F7301841414EF3DD892DA3 /* MenuBarDockKit */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		D8A9683F2FB083BC009504AC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D81167B42E70A13F000D0173 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D8A9682F2FB083BB009504AC;
+			remoteInfo = SyncNosForHealth;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		D8A968302FB083BB009504AC /* SyncNosForHealth.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SyncNosForHealth.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D8A9683E2FB083BC009504AC /* SyncNosForHealthTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SyncNosForHealthTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D8CE88DA2E713DB50025AD6E /* SyncNos.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SyncNos.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -47,6 +59,16 @@
 			path = Resource;
 			sourceTree = "<group>";
 		};
+		D8A968312FB083BB009504AC /* SyncNosForHealth */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = SyncNosForHealth;
+			sourceTree = "<group>";
+		};
+		D8A968412FB083BC009504AC /* SyncNosForHealthTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = SyncNosForHealthTests;
+			sourceTree = "<group>";
+		};
 		D8CE88DB2E713DB50025AD6E /* SyncNos */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -58,6 +80,20 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		D8A9682D2FB083BB009504AC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D8A9683B2FB083BC009504AC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D8CE88D72E713DB50025AD6E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -74,6 +110,8 @@
 			children = (
 				D855CBA82E7D52B10019C4A0 /* Resource */,
 				D8CE88DB2E713DB50025AD6E /* SyncNos */,
+				D8A968312FB083BB009504AC /* SyncNosForHealth */,
+				D8A968412FB083BC009504AC /* SyncNosForHealthTests */,
 				D81167BD2E70A140000D0173 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -82,6 +120,8 @@
 			isa = PBXGroup;
 			children = (
 				D8CE88DA2E713DB50025AD6E /* SyncNos.app */,
+				D8A968302FB083BB009504AC /* SyncNosForHealth.app */,
+				D8A9683E2FB083BC009504AC /* SyncNosForHealthTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -89,6 +129,51 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		D8A9682F2FB083BB009504AC /* SyncNosForHealth */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D8A968562FB083BD009504AC /* Build configuration list for PBXNativeTarget "SyncNosForHealth" */;
+			buildPhases = (
+				D8A9682C2FB083BB009504AC /* Sources */,
+				D8A9682D2FB083BB009504AC /* Frameworks */,
+				D8A9682E2FB083BB009504AC /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				D8A968312FB083BB009504AC /* SyncNosForHealth */,
+			);
+			name = SyncNosForHealth;
+			packageProductDependencies = (
+			);
+			productName = SyncNosForHealth;
+			productReference = D8A968302FB083BB009504AC /* SyncNosForHealth.app */;
+			productType = "com.apple.product-type.application";
+		};
+		D8A9683D2FB083BC009504AC /* SyncNosForHealthTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D8A968572FB083BD009504AC /* Build configuration list for PBXNativeTarget "SyncNosForHealthTests" */;
+			buildPhases = (
+				D8A9683A2FB083BC009504AC /* Sources */,
+				D8A9683B2FB083BC009504AC /* Frameworks */,
+				D8A9683C2FB083BC009504AC /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D8A968402FB083BC009504AC /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				D8A968412FB083BC009504AC /* SyncNosForHealthTests */,
+			);
+			name = SyncNosForHealthTests;
+			packageProductDependencies = (
+			);
+			productName = SyncNosForHealthTests;
+			productReference = D8A9683E2FB083BC009504AC /* SyncNosForHealthTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		D8CE88D92E713DB50025AD6E /* SyncNos */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = D8CE88E32E713DB60025AD6E /* Build configuration list for PBXNativeTarget "SyncNos" */;
@@ -120,9 +205,16 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2600;
+				LastSwiftUpdateCheck = 2640;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
+					D8A9682F2FB083BB009504AC = {
+						CreatedOnToolsVersion = 26.4;
+					};
+					D8A9683D2FB083BC009504AC = {
+						CreatedOnToolsVersion = 26.4;
+						TestTargetID = D8A9682F2FB083BB009504AC;
+					};
 					D8CE88D92E713DB50025AD6E = {
 						CreatedOnToolsVersion = 16.3;
 					};
@@ -160,11 +252,27 @@
 			projectRoot = "";
 			targets = (
 				D8CE88D92E713DB50025AD6E /* SyncNos */,
+				D8A9682F2FB083BB009504AC /* SyncNosForHealth */,
+				D8A9683D2FB083BC009504AC /* SyncNosForHealthTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		D8A9682E2FB083BB009504AC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D8A9683C2FB083BC009504AC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D8CE88D82E713DB50025AD6E /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -175,6 +283,20 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		D8A9682C2FB083BB009504AC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D8A9683A2FB083BC009504AC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D8CE88D62E713DB50025AD6E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -183,6 +305,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D8A968402FB083BC009504AC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D8A9682F2FB083BB009504AC /* SyncNosForHealth */;
+			targetProxy = D8A9683F2FB083BC009504AC /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		D81167C12E70A140000D0173 /* Debug */ = {
@@ -313,6 +443,132 @@
 			};
 			name = Release;
 		};
+		D8A968502FB083BD009504AC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RDQHYSDFFG;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.chiimagnus.SyncNosForHealth;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		D8A968512FB083BD009504AC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RDQHYSDFFG;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.chiimagnus.SyncNosForHealth;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		D8A968522FB083BD009504AC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RDQHYSDFFG;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.chiimagnus.SyncNosForHealthTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SyncNosForHealth.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SyncNosForHealth";
+			};
+			name = Debug;
+		};
+		D8A968532FB083BD009504AC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RDQHYSDFFG;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.chiimagnus.SyncNosForHealthTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SyncNosForHealth.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SyncNosForHealth";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		D8CE88E42E713DB60025AD6E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -413,6 +669,24 @@
 			buildConfigurations = (
 				D81167C12E70A140000D0173 /* Debug */,
 				D81167C22E70A140000D0173 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D8A968562FB083BD009504AC /* Build configuration list for PBXNativeTarget "SyncNosForHealth" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D8A968502FB083BD009504AC /* Debug */,
+				D8A968512FB083BD009504AC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D8A968572FB083BD009504AC /* Build configuration list for PBXNativeTarget "SyncNosForHealthTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D8A968522FB083BD009504AC /* Debug */,
+				D8A968532FB083BD009504AC /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
