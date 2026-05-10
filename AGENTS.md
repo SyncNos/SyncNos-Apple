@@ -2,17 +2,26 @@
 
 ## 项目结构与模块组织
 
-本文件作用域：`SyncNosForHealth/**`（iOS SwiftUI App 目标）。
+本文件作用域：`SyncNos-booknotes/**`（本仓库全部；重点约束 `SyncNosForHealth/**`）。
 
 目录现状（仅列真实存在的路径）：
-- `SyncNosForHealth/Assets.xcassets/`：App 资源
-- `SyncNosForHealth/SyncNosForHealthApp.swift`：App 入口（当前为空壳，后续会实现）
+- `SyncNos.xcodeproj/`：Xcode 工程（包含多个 target）
+- `SyncNosForHealth/`：iOS SwiftUI App（Health → Notion）
+- `SyncNosForHealthTests/`：iOS 单测（目前为空壳/待补）
+- `SyncNos/`：既有 App/代码（本 feature 默认不改；避免把 macOS 绑定依赖拖进 iOS）
+- `Packages/`：SwiftPM 包集合（若存在可复用模块优先复用）
+
+仓库级硬性约束：
+- 所有 shell 命令必须以 `rtk` 前缀运行。
+- 务必原子化提交 git，不能 push。
+- `.github/features/**` 的计划/审计文件默认不提交（除非用户显式要求）。
 
 ## 代码风格与命名规范
 
 - Swift / SwiftUI：遵循下方“开发规范（详细）”的 Apple/Swift 基线规范全文。
 - 新增类型/函数命名以语义清晰为先；避免为了抽象而抽象（YAGNI）。
 - token/secret 等敏感数据只允许进入 Keychain；不得写入 UserDefaults。
+- `SyncNosForHealth/**` 不得依赖 `SyncNos/**` 中的 macOS-only 代码（例如 AppKit/旧 DIContainer）；iOS 目标内保持依赖方向清晰可测试。
 
 ## 测试指南
 
