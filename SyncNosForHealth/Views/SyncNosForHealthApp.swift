@@ -2,7 +2,7 @@ import SwiftUI
 
 @main
 struct SyncNosForHealthApp: App {
-    @StateObject private var settings = NotionSettingsViewModel()
+    @State private var settings = NotionSettingsViewModel()
 
     var body: some Scene {
         WindowGroup {
@@ -12,7 +12,7 @@ struct SyncNosForHealthApp: App {
                         SleepDayScene(settings: settings)
                     }
                     NavigationLink("Notion 设置") {
-                        NotionSettingsView()
+                        NotionSettingsView(settings: settings)
                     }
                 }
                 .navigationTitle("SyncNos Health")

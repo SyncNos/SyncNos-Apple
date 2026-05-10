@@ -1,19 +1,20 @@
-import Combine
 import Foundation
+import Observation
 
+@Observable
 @MainActor
-final class NotionSettingsViewModel: ObservableObject {
-    @Published var isConnected = false
-    @Published var isAuthorizing = false
-    @Published var workspaceName: String?
-    @Published var statusText = "未连接"
-    @Published var syncEnabled = false
-    @Published var parentPageId = ""
-    @Published var parentPageTitle = ""
-    @Published var availablePages: [NotionPageSummary] = []
-    @Published var isLoadingPages = false
-    @Published var healthDatabaseIdOverride = ""
-    @Published var errorMessage: String?
+final class NotionSettingsViewModel {
+    var isConnected = false
+    var isAuthorizing = false
+    var workspaceName: String?
+    var statusText = "未连接"
+    var syncEnabled = false
+    var parentPageId = ""
+    var parentPageTitle = ""
+    var availablePages: [NotionPageSummary] = []
+    var isLoadingPages = false
+    var healthDatabaseIdOverride = ""
+    var errorMessage: String?
 
     private let oauthService = NotionOAuthService()
     private let pagesService = NotionParentPagesService()
@@ -31,6 +32,7 @@ final class NotionSettingsViewModel: ObservableObject {
 
     func connect() async {
         isAuthorizing = true
+        updateStatusText()
         errorMessage = nil
         do {
             let response = try await oauthService.performFullAuthorization()
@@ -46,6 +48,7 @@ final class NotionSettingsViewModel: ObservableObject {
             errorMessage = error.localizedDescription
         }
         isAuthorizing = false
+        updateStatusText()
     }
 
     func disconnect() {

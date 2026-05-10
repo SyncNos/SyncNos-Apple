@@ -1,14 +1,15 @@
-import Combine
 import SwiftUI
+import Observation
 
 @MainActor
-final class SleepDayViewModel: ObservableObject {
-    @Published var selectedDate = Date()
-    @Published var sleepData: SleepDayData?
-    @Published var isLoading = false
-    @Published var isSyncing = false
-    @Published var errorMessage: String?
-    @Published var syncSuccess = false
+@Observable
+final class SleepDayViewModel {
+    var selectedDate = Date()
+    var sleepData: SleepDayData?
+    var isLoading = false
+    var isSyncing = false
+    var errorMessage: String?
+    var syncSuccess = false
 
     private let timelineService = SleepTimelineService()
     private let dbService = NotionHealthDatabaseService()
@@ -71,14 +72,16 @@ final class SleepDayViewModel: ObservableObject {
 }
 
 struct SleepDayScene: View {
-    @ObservedObject var settings: NotionSettingsViewModel
-    @StateObject private var vm = SleepDayViewModel()
+    var settings: NotionSettingsViewModel
+    @State private var vm = SleepDayViewModel()
 
     var body: some View {
+        @Bindable var vm = vm
+
         VStack(spacing: 16) {
             DatePicker("选择日期", selection: $vm.selectedDate, displayedComponents: .date)
                 .datePickerStyle(.compact)
-                .onChange(of: vm.selectedDate) { _ in
+                .onChange(of: vm.selectedDate) {
                     Task { await vm.loadTimeline() }
                 }
 

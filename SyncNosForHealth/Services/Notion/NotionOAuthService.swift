@@ -11,6 +11,7 @@ struct NotionOAuthTokenResponse {
 @MainActor
 final class NotionOAuthService {
     private var session: ASWebAuthenticationSession?
+    private var presentationContextProvider: IOSPresentationContextProvider?
 
     func performFullAuthorization() async throws -> NotionOAuthTokenResponse {
         guard let code = try await startAuthorization() else {
@@ -48,7 +49,10 @@ final class NotionOAuthService {
                 url: authURL,
                 callbackURLScheme: NotionOAuthConfig.callbackScheme
             ) { callbackURL, error in
-                defer { self.session = nil }
+                defer {
+                    self.session = nil
+                    self.presentationContextProvider = nil
+                }
 
                 if let error = error {
                     let nsError = error as NSError
@@ -102,10 +106,13 @@ final class NotionOAuthService {
                 continuation.resume(returning: code)
             }
 
-            s.presentationContextProvider = IOSPresentationContextProvider.shared
+            let provider = IOSPresentationContextProvider()
+            self.presentationContextProvider = provider
+            s.presentationContextProvider = provider
             self.session = s
             if !s.start() {
                 self.session = nil
+                self.presentationContextProvider = nil
                 continuation.resume(throwing: NSError(
                     domain: "NotionOAuthService",
                     code: 3,
@@ -181,8 +188,6 @@ final class NotionOAuthService {
 }
 
 private final class IOSPresentationContextProvider: NSObject, ASWebAuthenticationPresentationContextProviding {
-    static let shared = IOSPresentationContextProvider()
-
     func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
         let scene = UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
