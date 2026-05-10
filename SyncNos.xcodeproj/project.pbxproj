@@ -41,11 +41,21 @@
 			);
 			target = D8CE88D92E713DB50025AD6E /* SyncNos */;
 		};
+		D8A968602FB083BD009504AC /* Exceptions for "SyncNosForHealth" folder in "SyncNosForHealth" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = D8A9682F2FB083BB009504AC /* SyncNosForHealth */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		D8A968312FB083BB009504AC /* SyncNosForHealth */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				D8A968602FB083BD009504AC /* Exceptions for "SyncNosForHealth" folder in "SyncNosForHealth" target */,
+			);
 			path = SyncNosForHealth;
 			sourceTree = "<group>";
 		};
@@ -436,6 +446,7 @@
 				DEVELOPMENT_TEAM = RDQHYSDFFG;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SyncNosForHealth/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -475,6 +486,7 @@
 				DEVELOPMENT_TEAM = RDQHYSDFFG;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SyncNosForHealth/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
