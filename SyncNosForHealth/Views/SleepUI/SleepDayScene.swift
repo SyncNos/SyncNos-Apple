@@ -119,6 +119,8 @@ struct SleepDayScene: View {
                 Text(error)
                     .font(.caption)
                     .foregroundStyle(.red)
+                    .lineLimit(nil)
+                    .textSelection(.enabled)
             }
 
             Spacer()
