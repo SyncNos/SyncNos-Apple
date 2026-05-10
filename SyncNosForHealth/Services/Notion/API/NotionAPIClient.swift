@@ -1,4 +1,5 @@
 import Foundation
+import os
 
 final class NotionAPIClient {
     private let apiBase = "https://api.notion.com/v1"
@@ -9,7 +10,8 @@ final class NotionAPIClient {
     func performRequest(
         method: String,
         path: String,
-        body: [String: Any]? = nil
+        body: [String: Any]? = nil,
+        traceId: UUID? = nil
     ) async throws -> Data {
         guard let token = NotionTokenStore.accessToken else {
             throw NSError(domain: "NotionAPIClient", code: -1,
@@ -35,10 +37,14 @@ final class NotionAPIClient {
 
         var lastError: Error?
         for attempt in 0..<maxRetries {
+            let trace = traceId?.uuidString ?? "-"
+            let bodyKeys = body.map { Array($0.keys).sorted().joined(separator: ",") } ?? "-"
+            AppLog.notionAPI.info("→ Notion \(method, privacy: .public) \(path, privacy: .public) attempt=\(attempt + 1, privacy: .public)/\(self.maxRetries, privacy: .public) trace=\(trace, privacy: .public) bodyKeys=\(bodyKeys, privacy: .public)")
             let (data, response): (Data, URLResponse)
             do {
                 (data, response) = try await URLSession.shared.data(for: request)
             } catch {
+                AppLog.notionAPI.error("✖︎ Notion transport error method=\(method, privacy: .public) path=\(path, privacy: .public) trace=\(trace, privacy: .public) error=\(String(describing: error), privacy: .public)")
                 lastError = error
                 if attempt < maxRetries - 1 {
                     try await backoff(attempt: attempt)
@@ -53,6 +59,7 @@ final class NotionAPIClient {
             }
 
             if httpResponse.statusCode == 429 || httpResponse.statusCode == 503 {
+                AppLog.notionAPI.notice("↻ Notion retryable status=\(httpResponse.statusCode, privacy: .public) method=\(method, privacy: .public) path=\(path, privacy: .public) trace=\(trace, privacy: .public)")
                 if attempt < maxRetries - 1 {
                     if let retryAfter = httpResponse.value(forHTTPHeaderField: "Retry-After"),
                        let seconds = Double(retryAfter) {
@@ -65,10 +72,20 @@ final class NotionAPIClient {
             }
 
             if (200...299).contains(httpResponse.statusCode) {
+                let requestIdHeader = httpResponse.value(forHTTPHeaderField: "x-notion-request-id")
+                    ?? httpResponse.value(forHTTPHeaderField: "X-Notion-Request-Id")
+                    ?? httpResponse.value(forHTTPHeaderField: "notion-request-id")
+                let requestId = requestIdHeader ?? "-"
+                AppLog.notionAPI.info("← Notion status=\(httpResponse.statusCode, privacy: .public) bytes=\(data.count, privacy: .public) trace=\(trace, privacy: .public) requestId=\(requestId, privacy: .public) path=\(path, privacy: .public)")
                 return data
             }
 
-            throw NotionError.from(data: data, statusCode: httpResponse.statusCode)
+            let notionError = NotionError.from(data: data, statusCode: httpResponse.statusCode)
+            let code = notionError.code ?? "-"
+            let requestId = notionError.requestId ?? "-"
+            let message = notionError.message ?? "-"
+            AppLog.notionAPI.error("← Notion error status=\(notionError.status, privacy: .public) code=\(code, privacy: .public) requestId=\(requestId, privacy: .public) trace=\(trace, privacy: .public) message=\(message, privacy: .public) path=\(path, privacy: .public)")
+            throw notionError
         }
 
         throw lastError ?? NSError(domain: "NotionAPIClient", code: -4,

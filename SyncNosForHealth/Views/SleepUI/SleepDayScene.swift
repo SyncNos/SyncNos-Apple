@@ -1,5 +1,6 @@
 import SwiftUI
 import Observation
+import os
 
 @MainActor
 @Observable
@@ -34,6 +35,9 @@ final class SleepDayViewModel {
         errorMessage = nil
         syncSuccess = false
 
+        let traceId = UUID()
+        let workspace = NotionTokenStore.workspaceName ?? "-"
+        AppLog.ui.info("syncToNotion start trace=\(traceId.uuidString, privacy: .public) date=\(String(describing: self.selectedDate), privacy: .public) workspace=\(workspace, privacy: .public)")
         do {
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "yyyy-MM-dd"
@@ -49,19 +53,23 @@ final class SleepDayViewModel {
 
             let databaseId = try await dbService.ensureDatabase(
                 parentPageId: parentPageId,
-                overrideId: overrideId
+                overrideId: overrideId,
+                traceId: traceId
             )
 
             try await upsertService.upsert(
                 databaseId: databaseId.id,
                 titlePropertyName: databaseId.titlePropertyName,
                 date: dateStr,
-                totalSleepMin: sleepData.totalSleepMinutes
+                totalSleepMin: sleepData.totalSleepMinutes,
+                traceId: traceId
             )
 
             syncSuccess = true
+            AppLog.ui.info("syncToNotion success trace=\(traceId.uuidString, privacy: .public) databaseId=\(databaseId.id, privacy: .private(mask: .hash)) date=\(dateStr, privacy: .public)")
         } catch {
             errorMessage = error.localizedDescription
+            AppLog.ui.error("syncToNotion failed trace=\(traceId.uuidString, privacy: .public) error=\(String(describing: error), privacy: .public)")
         }
         isSyncing = false
     }
