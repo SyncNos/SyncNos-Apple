@@ -3,20 +3,20 @@ import Foundation
 final class NotionHealthDailyUpsertService {
     private let api = NotionAPIClient()
 
-    func upsert(databaseId: String, date: String, totalSleepMin: Int) async throws {
-        let existingPageId = try await findPage(databaseId: databaseId, date: date)
+    func upsert(databaseId: String, titlePropertyName: String, date: String, totalSleepMin: Int) async throws {
+        let existingPageId = try await findPage(databaseId: databaseId, titlePropertyName: titlePropertyName, date: date)
 
         if let pageId = existingPageId {
             try await updatePage(pageId: pageId, totalSleepMin: totalSleepMin)
         } else {
-            try await createPage(databaseId: databaseId, date: date, totalSleepMin: totalSleepMin)
+            try await createPage(databaseId: databaseId, titlePropertyName: titlePropertyName, date: date, totalSleepMin: totalSleepMin)
         }
     }
 
-    private func findPage(databaseId: String, date: String) async throws -> String? {
+    private func findPage(databaseId: String, titlePropertyName: String, date: String) async throws -> String? {
         let body: [String: Any] = [
             "filter": [
-                "property": "Date",
+                "property": titlePropertyName,
                 "title": ["equals": date],
             ]
         ]
@@ -35,11 +35,11 @@ final class NotionHealthDailyUpsertService {
         return results.first?["id"] as? String
     }
 
-    private func createPage(databaseId: String, date: String, totalSleepMin: Int) async throws {
+    private func createPage(databaseId: String, titlePropertyName: String, date: String, totalSleepMin: Int) async throws {
         let body: [String: Any] = [
             "parent": ["database_id": databaseId],
             "properties": [
-                "Date": [
+                titlePropertyName: [
                     "title": [["text": ["content": date]]]
                 ],
                 "TotalSleepMin": [

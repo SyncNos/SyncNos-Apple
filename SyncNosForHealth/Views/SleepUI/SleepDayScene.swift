@@ -53,7 +53,8 @@ final class SleepDayViewModel {
             )
 
             try await upsertService.upsert(
-                databaseId: databaseId,
+                databaseId: databaseId.id,
+                titlePropertyName: databaseId.titlePropertyName,
                 date: dateStr,
                 totalSleepMin: sleepData.totalSleepMinutes
             )

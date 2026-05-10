@@ -1,20 +1,24 @@
 import Foundation
 
+struct NotionHealthDatabaseHandle: Sendable {
+    let id: String
+    let titlePropertyName: String
+}
+
 final class NotionHealthDatabaseService {
     private let api = NotionAPIClient()
 
-    func ensureDatabase(parentPageId: String, overrideId: String?) async throws -> String {
+    func ensureDatabase(parentPageId: String, overrideId: String?) async throws -> NotionHealthDatabaseHandle {
         if let overrideId, !overrideId.isEmpty {
-            try await ensureSchema(databaseId: overrideId)
-            return overrideId
+            return try await ensureSchema(databaseId: overrideId)
         }
 
         if let existing = try await findExistingDatabase(parentPageId: parentPageId) {
-            try await ensureSchema(databaseId: existing)
-            return existing
+            return try await ensureSchema(databaseId: existing)
         }
 
-        return try await createDatabase(parentPageId: parentPageId)
+        let createdId = try await createDatabase(parentPageId: parentPageId)
+        return try await ensureSchema(databaseId: createdId)
     }
 
     private func findExistingDatabase(parentPageId: String) async throws -> String? {
@@ -67,21 +71,44 @@ final class NotionHealthDatabaseService {
         return id
     }
 
-    private func ensureSchema(databaseId: String) async throws {
+    private func ensureSchema(databaseId: String) async throws -> NotionHealthDatabaseHandle {
         let data = try await api.performRequest(method: "GET", path: "/databases/\(databaseId)")
-        let info = try parseAndValidateDatabase(data: data, allowMissingTotalSleep: true)
+        var info = try parseAndValidateDatabase(data: data, allowMissingTotalSleep: true)
 
-        guard !info.hasTotalSleepMin else { return }
-
-        let body: [String: Any] = [
-            "properties": [
-                "TotalSleepMin": ["number": ["format": "number"]],
+        // 兼容旧/手工数据库：Notion 默认 title 属性名通常是 "Name"。
+        // App 约定 title 属性名为 "Date"（承载 yyyy-MM-dd），因此若发现为 "Name"，尝试 rename 为 "Date"。
+        if info.titlePropertyName != "Date", info.titlePropertyName == "Name" {
+            let renameBody: [String: Any] = [
+                "properties": [
+                    "Name": [
+                        "name": "Date"
+                    ]
+                ]
             ]
-        ]
-        _ = try await api.performRequest(method: "PATCH", path: "/databases/\(databaseId)", body: body)
+            // rename 失败不应阻断同步：可能存在同名属性冲突或权限限制。
+            do {
+                _ = try await api.performRequest(method: "PATCH", path: "/databases/\(databaseId)", body: renameBody)
+                info = DatabaseSchemaInfo(titlePropertyName: "Date", hasTotalSleepMin: info.hasTotalSleepMin)
+            } catch {
+                // fallback：继续使用原 title 属性名（通常为 "Name"）
+            }
+        }
+
+        if !info.hasTotalSleepMin {
+            let body: [String: Any] = [
+                "properties": [
+                    "TotalSleepMin": ["number": ["format": "number"]],
+                ]
+            ]
+            _ = try await api.performRequest(method: "PATCH", path: "/databases/\(databaseId)", body: body)
+            info = DatabaseSchemaInfo(titlePropertyName: info.titlePropertyName, hasTotalSleepMin: true)
+        }
+
+        return NotionHealthDatabaseHandle(id: databaseId, titlePropertyName: info.titlePropertyName)
     }
 
     private struct DatabaseSchemaInfo {
+        let titlePropertyName: String
         let hasTotalSleepMin: Bool
     }
 
@@ -113,14 +140,6 @@ final class NotionHealthDatabaseService {
             )
         }
 
-        guard titleName == "Date" else {
-            throw NSError(
-                domain: "NotionHealthDatabaseService",
-                code: -12,
-                userInfo: [NSLocalizedDescriptionKey: "Database title property is '\(titleName)'; expected 'Date'"]
-            )
-        }
-
         var hasTotal = false
         if let total = properties["TotalSleepMin"] as? [String: Any],
            let type = total["type"] as? String {
@@ -143,6 +162,6 @@ final class NotionHealthDatabaseService {
             )
         }
 
-        return DatabaseSchemaInfo(hasTotalSleepMin: hasTotal)
+        return DatabaseSchemaInfo(titlePropertyName: titleName, hasTotalSleepMin: hasTotal)
     }
 }
