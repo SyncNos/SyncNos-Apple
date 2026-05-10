@@ -5,6 +5,8 @@ final class SleepTimelineService {
     private let store = HKHealthStore()
 
     func fetchSleepTimeline(for date: Date) async throws -> SleepDayData {
+        try await HealthKitAuthorization.requestAuthorization()
+
         let calendar = Calendar.current
         let dayStart = calendar.startOfDay(for: date)
         let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart)!
@@ -51,23 +53,14 @@ final class SleepTimelineService {
     }
 
     private func mapSleepValue(_ value: Int) -> SleepStage {
-        if #available(iOS 16.0, *) {
-            switch HKCategoryValueSleepAnalysis(rawValue: value) {
-            case .inBed: return .inBed
-            case .awake: return .awake
-            case .asleepCore: return .asleepCore
-            case .asleepDeep: return .asleepDeep
-            case .asleepREM: return .asleepREM
-            case .asleepUnspecified: return .asleepUnspecified
-            default: return .asleepUnspecified
-            }
-        } else {
-            switch value {
-            case 0: return .inBed
-            case 1: return .asleepUnspecified
-            case 2: return .awake
-            default: return .asleepUnspecified
-            }
+        switch HKCategoryValueSleepAnalysis(rawValue: value) {
+        case .inBed: return .inBed
+        case .awake: return .awake
+        case .asleepCore: return .asleepCore
+        case .asleepDeep: return .asleepDeep
+        case .asleepREM: return .asleepREM
+        case .asleepUnspecified: return .asleepUnspecified
+        default: return .asleepUnspecified
         }
     }
 }

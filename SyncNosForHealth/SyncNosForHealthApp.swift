@@ -3,7 +3,6 @@ import SwiftUI
 @main
 struct SyncNosForHealthApp: App {
     @StateObject private var settings = NotionSettingsViewModel()
-    @State private var debugURL: URL?
 
     var body: some Scene {
         WindowGroup {
@@ -17,9 +16,6 @@ struct SyncNosForHealthApp: App {
                     }
                 }
                 .navigationTitle("SyncNos Health")
-            }
-            .onOpenURL { url in
-                debugURL = url
             }
             .onAppear {
                 settings.loadState()
