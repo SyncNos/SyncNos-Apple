@@ -6,16 +6,17 @@ struct SyncNosForHealthApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .onOpenURL { url in
-                    debugURL = url
+            NavigationStack {
+                List {
+                    NavigationLink("Notion 设置") {
+                        NotionSettingsView()
+                    }
                 }
+                .navigationTitle("SyncNos Health")
+            }
+            .onOpenURL { url in
+                debugURL = url
+            }
         }
-    }
-}
-
-private struct ContentView: View {
-    var body: some View {
-        Text("SyncNos Health")
     }
 }
