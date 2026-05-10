@@ -95,6 +95,9 @@ struct NotionSettingsView: View {
         .navigationTitle("Notion 设置")
         .onAppear {
             settings.loadState()
+            if settings.isConnected, settings.availablePages.isEmpty, !settings.isLoadingPages {
+                Task { await settings.refreshPages() }
+            }
         }
     }
 }

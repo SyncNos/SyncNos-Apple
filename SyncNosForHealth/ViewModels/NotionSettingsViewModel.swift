@@ -20,6 +20,10 @@ final class NotionSettingsViewModel {
     private let pagesService = NotionParentPagesService()
     private let store = NotionSettingsStore()
 
+    var hasParentPageConfigured: Bool {
+        !parentPageId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
     func loadState() {
         isConnected = NotionTokenStore.isAuthorized
         workspaceName = NotionTokenStore.workspaceName
@@ -70,6 +74,13 @@ final class NotionSettingsViewModel {
         errorMessage = nil
         do {
             availablePages = try await pagesService.listParentPages(savedPageId: parentPageId.isEmpty ? nil : parentPageId)
+            if !hasParentPageConfigured, let first = availablePages.first {
+                selectPage(first)
+            } else if hasParentPageConfigured, parentPageTitle.isEmpty,
+                      let current = availablePages.first(where: { $0.id == parentPageId }) {
+                // 如果之前未持久化标题（或标题为空），用当前列表补齐。
+                selectPage(current)
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
