@@ -1,16 +1,50 @@
-# SyncNosForHealth（iOS）开发约定
+# 项目开发规范与指南
 
-> 作用域：`SyncNosForHealth/**`
+## 项目结构与模块组织
 
-## Apple App 开发规范（Swift/SwiftUI 基线）
+本文件作用域：`SyncNosForHealth/**`（iOS SwiftUI App 目标）。
 
-> 本节为项目内复制版基线规范。后续如需更新，以本文件为准。
+目录现状（仅列真实存在的路径）：
+- `SyncNosForHealth/Assets.xcassets/`：App 资源
+- `SyncNosForHealth/SyncNosForHealthApp.swift`：App 入口（当前为空壳，后续会实现）
 
-### 核心技术栈
+## 代码风格与命名规范
+
+- Swift / SwiftUI：遵循下方“开发规范（详细）”的 Apple/Swift 基线规范全文。
+- 新增类型/函数命名以语义清晰为先；避免为了抽象而抽象（YAGNI）。
+- token/secret 等敏感数据只允许进入 Keychain；不得写入 UserDefaults。
+
+## 测试指南
+
+- 构建：使用 `xcodebuild`（建议在仓库根目录运行）：
+  - `rtk xcodebuild -project SyncNos.xcodeproj -scheme SyncNosForHealth -sdk iphonesimulator build`
+- 单测：
+  - 若后续引入 XCTest：使用 `xcodebuild test` 跑
+  - 若后续使用 Swift Testing：以工程实际配置为准（以 `xcodebuild test` 可跑通为验收）
+
+## 开发规范（详细）
+
+对齐说明（以本项目为准）：
+- 本目标是 **iOS 17+** SwiftUI App（`SyncNosForHealth` scheme）。
+- 同步/网络/HealthKit 查询不得阻塞主线程；UI 更新回主线程。
+- 测试框架若与下述规范建议不一致（例如改用 Swift Testing），以项目实际配置为准（不修改规范正文）。
+
+### Apple / Swift 规范（全文，真源）
+
+# Apple App 开发规范 for AI（Swift/SwiftUI 基线，唯一源）
+
+本文件是本机 Apple/Swift “开发规范”的**唯一真源**（single source of truth）。
+
+使用方式：
+- **先看 repo 自己的规范**（例如 `AGENTS.md` / `CONTRIBUTING.md` / `README` 中的架构约定）；项目内规范优先级更高。
+- 本文用于补齐“默认假设”和“常见决策边界”（尤其是 MVVM、依赖注入、Observation、测试策略与日志规范）。
+- 若项目涉及 visionOS / RealityKit / spatial computing，另参考 `/Users/chii_magnus/.codex/skills/init/references/visionos-dev.md`。该文件是平台补充规范，不覆盖本文的架构、测试与工具约束。
+
+## 核心技术栈
 
 - 架构模式：MVVM (Model-View-ViewModel)
 - 编程范式：Protocol-Oriented Programming（面向协议）
-- UI：SwiftUI（按需）
+- UI：SwiftUI、RealityKit（按需）
 - 状态管理：Observation（`@Observable` / `@Bindable`）；必要时使用 Swift Concurrency；仅在需要 Publisher 管道时引入 Combine
 - 持久化：SwiftData（按需）
 - Swift：Swift 6.0+
@@ -18,7 +52,7 @@
 平台支持（按项目选择）：
 - iOS 17.0+、iPadOS 17.0+、macOS 14.0+、visionOS 2.0+
 
-### 设计原则
+## 设计原则
 
 - 组合优于继承：优先依赖注入
 - 接口优于单例：利于测试与替换
@@ -30,7 +64,7 @@
 - YAGNI：不为不确定未来预埋
 - DRY + WET：避免重复，但别过早抽象（通常重复 2–3 次后再抽）
 
-### MVVM 架构规范
+## MVVM 架构规范
 
 职责划分：
 - **Model**：纯数据结构；不放 UI 逻辑（避免引用 SwiftUI/Observation/Combine）
@@ -38,54 +72,53 @@
 - **View**：渲染与交互绑定；不写业务逻辑；不直接访问数据库/网络
 - **Service/Repository**：网络、持久化、文件 IO 等副作用；优先协议抽象 + 注入
 
-模块化建议（可选，不是硬性要求）：
-- 逻辑层可下沉到 SwiftPM，以便测试与复用
-- 建议依赖方向保持单向：`SwiftUI 层 → ViewModel → Services → Models`
-- 建议拆分：`Models` target（纯数据结构）与 `Services` target（业务逻辑与基础设施）
+### 模块化建议（可选，不是硬性要求）
 
-ViewModel 规范（Observation 优先）：
+当项目允许时，可把“逻辑层”下沉到 SwiftPM，以便：
+- 更快的单元测试（测试执行方式按项目工具链约束选择）
+- 更强的可复用性与跨平台能力
+
+建议依赖方向保持单向：
+`SwiftUI 层 → ViewModel → Services → Models`
+
+建议拆分：
+- `Models` target：纯数据结构，尽量零依赖
+- `Services` target：业务逻辑与基础设施，依赖 `Models`
+
+注意：若项目本身不采用 SwiftPM 拆分（例如以 Xcode 项目为主），仍然可以遵循上述“职责划分 + 依赖注入 + 单向依赖”的原则。
+
+### ViewModel 规范（Observation 优先）
+
 - iOS 17+ / macOS 14+：优先 `@Observable` / `@Bindable`
 - 避免单例：不要用 `static let shared`
 - 依赖注入优先：初始化参数或 `.environment(...)`
-- 不使用 `ObservableObject` / `@Published` / `@StateObject` / `@ObservedObject` / `@EnvironmentObject`（统一用 Observation 体系）
+- 不使用 `ObservableObject` / `@Published` / `@StateObject` / `@ObservedObject` / `@EnvironmentObject`（统一用 Observation 体系）。
 
-SwiftUI 事件处理：
-- 优先使用 `.onChange(of:) {}` 的无参数重载
-- 只有确实需要 `oldValue` / `newValue` 时，才使用带两个参数的重载
+### SwiftUI 事件处理
 
-协议驱动开发：
+- 优先使用 `.onChange(of:) {}` 的无参数重载。
+- 只有确实需要 `oldValue` / `newValue` 时，才使用带两个参数的重载；不要默认写 `.onChange(of:) { _, _ in }`。
+
+## 协议驱动开发
+
+原则：
 1. 先定义协议，再实现类型
 2. 用协议消除类型分支（减少 `switch` 的维护成本）
 3. 新增能力优先“增加实现”而不是“修改中心分发器”
 
-测试与调试：
-- build/test/run 统一使用原生 `xcodebuild`
-- 单元测试优先级建议：逻辑层 / ViewModel / UI 层统一用 XCTest（通过 `xcodebuild test` 跑）
-- 日志用 `os.Logger`，明确 `subsystem` 与 `category`
+## 测试与调试
 
-## SyncNosForHealth（iOS）核心目标（V1）
+工具约束（本机 Apple/Swift 技能默认）：
+- 本目录下涉及 build/test/run 的操作，统一使用原生 `xcodebuild`。
+- 涉及 Simulator/Device 与日志相关的操作，按需使用原生 `xcrun simctl` / `log stream` 等系统工具。
 
-- 读取 HealthKit 睡眠数据（timeline 区间事件）并在 App 内渲染。
-- 用户选择某一天 → 手动同步到 Notion（幂等 upsert；V1 只写 `Date(title)` + `TotalSleepMin(number)`）。
-- Notion OAuth 复用既有基础设施（GitHub Pages 回调 + Cloudflare exchange）。
+单元测试优先级建议：
+- **逻辑层 / ViewModel / UI 层**：统一用 XCTest（通过 `xcodebuild test` 跑）
 
-## SyncNosForHealth（iOS）硬性规则
+调试与日志：
+- 日志用 `os.Logger`，明确 `subsystem` 与 `category`，便于过滤与定位
 
-- **不引入 macOS 绑定**：不得直接依赖 `SyncNos/` 主工程中的 `NSApplication`、macOS-only 逻辑或历史 DI 体系。
-- **不在 UserDefaults 存 token**：Notion `access_token` 必须写入 **Keychain**；UserDefaults 仅存非敏感配置（开关、parentPageId、db override 等）。
-- **主线程禁做网络/重计算**：网络请求、HealthKit 查询、Notion 写入必须在后台任务中完成；UI 更新回到主线程。
+## 参考资料
 
-## 目录建议（可按需调整）
-
-- `SyncNosForHealth/Settings/**`：设置页 UI + ViewModel + 配置持久化（非敏感）
-- `SyncNosForHealth/Notion/**`：iOS 专用 Notion client / OAuth / Keychain store
-- `SyncNosForHealth/HealthKit/**`：授权与睡眠 timeline 查询
-- `SyncNosForHealth/SleepUI/**`：睡眠图表与按天查看 UI
-
-## 验证与提交
-
-- 运行命令一律使用 `rtk` 前缀，例如：
-  - `rtk xcodebuild -project SyncNos.xcodeproj -scheme SyncNosForHealth -sdk iphonesimulator build`
-- 一个 task 一次原子 commit；不要 push。
-- `.github/features/**` 下的计划文件默认不提交到 git（除非你明确要求入库）。
-
+- `SyncNos-booknotes/SyncNos/Services/DataSources-To/Notion/`：Swift Notion 参考实现（仅作参考，不要直接把 macOS 绑定拖进 iOS 目标）
+- （可选）同步计划与审计文件不在本 repo 内维护；以执行时所在仓库的 `.github/features/` 为准
