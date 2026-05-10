@@ -2,10 +2,14 @@ import Foundation
 
 enum NotionHealthDatabaseSpec {
     static let title = "SyncNos-Health"
+    static let titlePropertyName = "Title"
+    static let datePropertyName = "Date"
 
     static var properties: [String: Any] {
         [
-            "Date": ["title": [:]],
+            // Notion 数据库必须有且仅有一个 title 属性；date 必须是独立的 date 属性。
+            titlePropertyName: ["title": [:]],
+            datePropertyName: ["date": [:]],
             "TotalSleepMin": ["number": ["format": "number"]],
         ]
     }
