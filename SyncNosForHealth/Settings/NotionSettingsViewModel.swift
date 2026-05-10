@@ -17,14 +17,15 @@ final class NotionSettingsViewModel: ObservableObject {
 
     private let oauthService = NotionOAuthService()
     private let pagesService = NotionParentPagesService()
+    private let store = NotionSettingsStore()
 
     func loadState() {
         isConnected = NotionTokenStore.isAuthorized
         workspaceName = NotionTokenStore.workspaceName
-        syncEnabled = UserDefaults.standard.bool(forKey: "syncEnabled")
-        parentPageId = UserDefaults.standard.string(forKey: "parentPageId") ?? ""
-        parentPageTitle = UserDefaults.standard.string(forKey: "parentPageTitle") ?? ""
-        healthDatabaseIdOverride = UserDefaults.standard.string(forKey: "healthDatabaseIdOverride") ?? ""
+        syncEnabled = store.syncEnabled
+        parentPageId = store.parentPageId
+        parentPageTitle = store.parentPageTitle
+        healthDatabaseIdOverride = store.healthDatabaseIdOverride
         updateStatusText()
     }
 
@@ -55,10 +56,7 @@ final class NotionSettingsViewModel: ObservableObject {
         parentPageId = ""
         parentPageTitle = ""
         healthDatabaseIdOverride = ""
-        UserDefaults.standard.removeObject(forKey: "syncEnabled")
-        UserDefaults.standard.removeObject(forKey: "parentPageId")
-        UserDefaults.standard.removeObject(forKey: "parentPageTitle")
-        UserDefaults.standard.removeObject(forKey: "healthDatabaseIdOverride")
+        store.clear()
         syncEnabled = false
         updateStatusText()
     }
@@ -78,21 +76,21 @@ final class NotionSettingsViewModel: ObservableObject {
     func selectPage(_ page: NotionPageSummary) {
         parentPageId = page.id
         parentPageTitle = page.title
-        UserDefaults.standard.set(page.id, forKey: "parentPageId")
-        UserDefaults.standard.set(page.title, forKey: "parentPageTitle")
+        store.parentPageId = page.id
+        store.parentPageTitle = page.title
     }
 
     func saveSyncEnabled() {
-        UserDefaults.standard.set(syncEnabled, forKey: "syncEnabled")
+        store.syncEnabled = syncEnabled
     }
 
     func saveHealthDatabaseOverride() {
-        UserDefaults.standard.set(healthDatabaseIdOverride, forKey: "healthDatabaseIdOverride")
+        store.healthDatabaseIdOverride = healthDatabaseIdOverride
     }
 
     func resetHealthDatabaseOverride() {
         healthDatabaseIdOverride = ""
-        UserDefaults.standard.removeObject(forKey: "healthDatabaseIdOverride")
+        store.healthDatabaseIdOverride = ""
     }
 
     private func updateStatusText() {

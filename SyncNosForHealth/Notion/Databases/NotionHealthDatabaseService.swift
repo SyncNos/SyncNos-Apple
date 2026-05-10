@@ -5,19 +5,16 @@ final class NotionHealthDatabaseService {
 
     func ensureDatabase(parentPageId: String, overrideId: String?) async throws -> String {
         if let overrideId, !overrideId.isEmpty {
-            try await validateDatabase(id: overrideId)
+            try await ensureSchema(databaseId: overrideId)
             return overrideId
         }
 
         if let existing = try await findExistingDatabase(parentPageId: parentPageId) {
+            try await ensureSchema(databaseId: existing)
             return existing
         }
 
         return try await createDatabase(parentPageId: parentPageId)
-    }
-
-    private func validateDatabase(id: String) async throws {
-        _ = try await api.performRequest(method: "GET", path: "/databases/\(id)")
     }
 
     private func findExistingDatabase(parentPageId: String) async throws -> String? {
@@ -68,5 +65,84 @@ final class NotionHealthDatabaseService {
                           userInfo: [NSLocalizedDescriptionKey: "Failed to create database"])
         }
         return id
+    }
+
+    private func ensureSchema(databaseId: String) async throws {
+        let data = try await api.performRequest(method: "GET", path: "/databases/\(databaseId)")
+        let info = try parseAndValidateDatabase(data: data, allowMissingTotalSleep: true)
+
+        guard !info.hasTotalSleepMin else { return }
+
+        let body: [String: Any] = [
+            "properties": [
+                "TotalSleepMin": ["number": ["format": "number"]],
+            ]
+        ]
+        _ = try await api.performRequest(method: "PATCH", path: "/databases/\(databaseId)", body: body)
+    }
+
+    private struct DatabaseSchemaInfo {
+        let hasTotalSleepMin: Bool
+    }
+
+    private func parseAndValidateDatabase(
+        data: Data,
+        allowMissingTotalSleep: Bool = false
+    ) throws -> DatabaseSchemaInfo {
+        guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let properties = json["properties"] as? [String: Any] else {
+            throw NSError(
+                domain: "NotionHealthDatabaseService",
+                code: -10,
+                userInfo: [NSLocalizedDescriptionKey: "Invalid database response"]
+            )
+        }
+
+        let titlePropertyNames = properties.compactMap { (key, value) -> String? in
+            guard let dict = value as? [String: Any],
+                  let type = dict["type"] as? String,
+                  type == "title" else { return nil }
+            return key
+        }
+
+        guard let titleName = titlePropertyNames.first else {
+            throw NSError(
+                domain: "NotionHealthDatabaseService",
+                code: -11,
+                userInfo: [NSLocalizedDescriptionKey: "Database has no title property"]
+            )
+        }
+
+        guard titleName == "Date" else {
+            throw NSError(
+                domain: "NotionHealthDatabaseService",
+                code: -12,
+                userInfo: [NSLocalizedDescriptionKey: "Database title property is '\(titleName)'; expected 'Date'"]
+            )
+        }
+
+        var hasTotal = false
+        if let total = properties["TotalSleepMin"] as? [String: Any],
+           let type = total["type"] as? String {
+            if type == "number" {
+                hasTotal = true
+            } else {
+                throw NSError(
+                    domain: "NotionHealthDatabaseService",
+                    code: -13,
+                    userInfo: [NSLocalizedDescriptionKey: "Property 'TotalSleepMin' exists but is not a number"]
+                )
+            }
+        }
+
+        if !allowMissingTotalSleep && !hasTotal {
+            throw NSError(
+                domain: "NotionHealthDatabaseService",
+                code: -14,
+                userInfo: [NSLocalizedDescriptionKey: "Database missing required property 'TotalSleepMin'"]
+            )
+        }
+
+        return DatabaseSchemaInfo(hasTotalSleepMin: hasTotal)
     }
 }

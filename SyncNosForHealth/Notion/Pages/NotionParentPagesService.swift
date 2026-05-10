@@ -16,6 +16,7 @@ final class NotionParentPagesService {
         repeat {
             var body: [String: Any] = [
                 "filter": ["property": "object", "value": "page"],
+                "sort": ["direction": "descending", "timestamp": "last_edited_time"],
                 "page_size": 50,
             ]
             if let cursor = startCursor {
@@ -71,6 +72,11 @@ final class NotionParentPagesService {
         let archived = json["archived"] as? Bool ?? false
         let inTrash = json["in_trash"] as? Bool ?? false
         if archived || inTrash { return nil }
+
+        if let parent = json["parent"] as? [String: Any],
+           parent["database_id"] != nil {
+            return nil
+        }
 
         return NotionPageSummary(id: id, title: extractTitle(from: json))
     }

@@ -48,6 +48,8 @@ final class NotionOAuthService {
                 url: authURL,
                 callbackURLScheme: NotionOAuthConfig.callbackScheme
             ) { callbackURL, error in
+                defer { self.session = nil }
+
                 if let error = error {
                     let nsError = error as NSError
                     if nsError.code == ASWebAuthenticationSessionError.canceledLogin.rawValue {
@@ -102,7 +104,14 @@ final class NotionOAuthService {
 
             s.presentationContextProvider = IOSPresentationContextProvider.shared
             self.session = s
-            s.start()
+            if !s.start() {
+                self.session = nil
+                continuation.resume(throwing: NSError(
+                    domain: "NotionOAuthService",
+                    code: 3,
+                    userInfo: [NSLocalizedDescriptionKey: "Failed to start authorization session"]
+                ))
+            }
         }
     }
 
