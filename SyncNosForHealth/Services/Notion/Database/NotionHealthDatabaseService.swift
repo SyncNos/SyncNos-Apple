@@ -51,6 +51,7 @@ final class NotionHealthDatabaseService {
         for r in results {
             guard r["object"] as? String == "database" else { continue }
             guard let id = r["id"] as? String else { continue }
+            let databaseTitle = extractDatabaseTitle(from: r)
 
             let archived = r["archived"] as? Bool ?? false
             let inTrash = r["in_trash"] as? Bool ?? false
@@ -61,14 +62,27 @@ final class NotionHealthDatabaseService {
                 let normalized1 = pageId.replacingOccurrences(of: "-", with: "").lowercased()
                 let normalized2 = parentPageId.replacingOccurrences(of: "-", with: "").lowercased()
                 if normalized1 == normalized2 {
-                    AppLog.notionDatabase.info("findExistingDatabase matched trace=\(trace, privacy: .public) databaseId=\(id, privacy: .private(mask: .hash))")
-                    return id
+                    // Notion /search 的 query 是模糊匹配，可能把“非健康数据库”也搜出来（例如库内页面标题命中 query）。
+                    // 为避免误用其它数据库，这里只自动复用 title 精确匹配的健康数据库；否则请用户用 overrideId 显式指定。
+                    if let databaseTitle, databaseTitle == NotionHealthDatabaseSpec.title {
+                        AppLog.notionDatabase.info("findExistingDatabase matched trace=\(trace, privacy: .public) databaseId=\(id, privacy: .private(mask: .hash)) title=\(databaseTitle, privacy: .public)")
+                        return id
+                    }
+                    let titleText = databaseTitle ?? "-"
+                    AppLog.notionDatabase.notice("findExistingDatabase parent matched but title mismatched trace=\(trace, privacy: .public) databaseId=\(id, privacy: .private(mask: .hash)) title=\(titleText, privacy: .public)")
                 }
             }
         }
 
         AppLog.notionDatabase.info("findExistingDatabase no match trace=\(trace, privacy: .public)")
         return nil
+    }
+
+    private func extractDatabaseTitle(from database: [String: Any]) -> String? {
+        let titleArray = database["title"] as? [[String: Any]] ?? []
+        let title = titleArray.compactMap { $0["plain_text"] as? String }.joined()
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 
     private func createDatabase(parentPageId: String, traceId: UUID?) async throws -> String {
@@ -93,9 +107,11 @@ final class NotionHealthDatabaseService {
 
     private func ensureSchema(databaseId: String, traceId: UUID?) async throws -> NotionHealthDatabaseHandle {
         let data = try await api.performRequest(method: "GET", path: "/databases/\(databaseId)", traceId: traceId)
+        let databaseURL = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["url"] as? String
         var info = try parseAndValidateDatabase(data: data, allowMissingTotalSleep: true)
         let trace = traceId?.uuidString ?? "-"
-        AppLog.notionDatabase.info("ensureSchema fetched trace=\(trace, privacy: .public) databaseId=\(databaseId, privacy: .private(mask: .hash)) titleProperty=\(info.titlePropertyName, privacy: .public) hasTotal=\(info.hasTotalSleepMin, privacy: .public)")
+        let databaseURLText = databaseURL ?? "-"
+        AppLog.notionDatabase.info("ensureSchema fetched trace=\(trace, privacy: .public) databaseId=\(databaseId, privacy: .private(mask: .hash)) url=\(databaseURLText, privacy: .public) titleProperty=\(info.titlePropertyName, privacy: .public) hasTotal=\(info.hasTotalSleepMin, privacy: .public)")
 
         // 兼容旧/手工数据库：Notion 默认 title 属性名通常是 "Name"。
         // App 约定 title 属性名为 "Date"（承载 yyyy-MM-dd），因此若发现为 "Name"，尝试 rename 为 "Date"。
