@@ -30,7 +30,6 @@
 		D834FF732EC23384008EE9FB /* Exceptions for "SyncNos" folder in "SyncNos" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				AGENTS.md,
 				Info.plist,
 				Services/AGENTS.md,
 				Services/Core/AGENTS.md,
